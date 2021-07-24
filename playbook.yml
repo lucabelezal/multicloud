@@ -94,13 +94,13 @@
       when: eb.stat.exists == false
 
     - name: Instalação do AWS EB CLI
-      command: "python /tmp/aws-eb/scripts/ebcli_installer.py" 
+      command: "/tmp/aws-eb/scripts/bundled_installer"
       become: yes
       become_user: vagrant
       when: eb.stat.exists == false
 
-    - name: Copiando o BIN para o PATH 
-      command: "cp /home/vagrant/.ebcli-virtual-env/bin/eb /usr/local/bin"
+    - name: Copiando o Binário para o bin
+      command: cp /home/vagrant/.ebcli-virtual-env/executables/eb /usr/local/bin
       when: eb.stat.exists == false
 
     - name: Adicionar Usuario Vagrant no Grupo Docker
@@ -108,3 +108,26 @@
         name: vagrant
         comment: Vagrant User
         groups: docker
+
+    ############# Setup do Ambiente de Desenvolvimento Python
+    - name: Instalação do Pip Python
+      apt:
+        pkg: ['python3-pip']
+        state: present
+
+    - name: Install virtualenv
+      pip:
+        name: 
+          - virtualenv
+          - virtualenvwrapper
+
+    - name: Setup do Virtualenv
+      lineinfile:
+        dest: /home/vagrant/.bashrc
+        line: "{{ item.line }}"
+      loop:
+        - { line: '#Virtualenvwrapper settings:'}
+        - { line: 'export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3'}
+        - { line: 'export WORKON_HOME=$HOME/.virtualenv'}
+        - { line: 'export VIRTUALENVWRAPPER_VIRTUALENV=/usr/bin/virtualenv'}
+        - { line: 'source /usr/local/bin/virtualenvwrapper.sh'}
